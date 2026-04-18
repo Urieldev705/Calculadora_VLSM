@@ -1,11 +1,14 @@
 export default class Subneteador {
     #redes;
     #rangos;
+    #ipInicial;
     constructor() {
         this.#rangos = [];
         this.#redes = [];
+        this.#ipInicial = [];
     }
 
+    // Metodos getters para obtener los atributos privados
     getRangos() {
         return this.#rangos;
     }
@@ -14,32 +17,37 @@ export default class Subneteador {
         return this.#redes;
     }
 
+    getIpInicial() {
+        return this.#ipInicial;
+    }
+
     // Método privado para definir la clase de la red
     #definirClase() {
         const totalHosts = [...this.#redes].reduce((suma, numero) => suma + numero);
-        let ipInicial = [];
-        if (totalHosts <= 220) {
-            ipInicial = [192, 168, 0, 0];
-        } else if (totalHosts > 220 && totalHosts < 65500) {
-            ipInicial = [172, 16, 0, 0];
-        } else {
-            ipInicial [10, 0, 0, 0];
+        if (this.#ipInicial.length == 0) {
+            if (totalHosts <= 220) {
+                this.#ipInicial = [192, 168, 0, 0];
+            } else if (totalHosts > 220 && totalHosts < 65500) {
+                this.#ipInicial = [172, 16, 0, 0];
+            } else {
+                this.#ipInicial = [10, 0, 0, 0];
+            }
         }
-        return ipInicial;
     }
 
     // Metodo para calcular las redes con VLSM
-    calcularRedes(redes) {
+    calcularRedes(redes, ipInicial = []) {
         this.#rangos = [];
         this.#redes = redes;
         const hostsOrdenados = [...this.#redes].sort((a, b) => b - a);
-        let ipInicial = this.#definirClase();
+        this.#ipInicial = ipInicial;
+        this.#definirClase();
         hostsOrdenados.forEach(red => {
             let nBits = (red + 1).toString(2).length;
             let mascara = 32 - nBits;
             let hosts = 2 ** nBits;
 
-            let ipInicialEntero = (ipInicial[0] << 24) | (ipInicial[1] << 16) | (ipInicial[2] << 8) | ipInicial[3]
+            let ipInicialEntero = (this.#ipInicial[0] << 24) | (this.#ipInicial[1] << 16) | (this.#ipInicial[2] << 8) | this.#ipInicial[3]
             let ipFinalEntero = ipInicialEntero + hosts - 1;
             let ipFinal = [
                 (ipFinalEntero >> 24) & 0xFF,
@@ -48,14 +56,14 @@ export default class Subneteador {
                 ipFinalEntero & 0xFF
             ];
             this.#rangos.push({
-                red: ipInicial,
+                red: this.#ipInicial,
                 mascara: mascara,
                 hosts_totales: hosts,
                 hosts_disponibles: hosts - 2,
                 broadcast: ipFinal
             });
             ipInicialEntero = ipFinalEntero + 1;
-            ipInicial = [
+            this.#ipInicial = [
                 (ipInicialEntero >> 24) & 0xFF,
                 (ipInicialEntero >> 16) & 0xFF,
                 (ipInicialEntero >> 8) & 0xFF,

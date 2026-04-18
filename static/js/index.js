@@ -1,5 +1,13 @@
 import Subneteador from "../../modules/subneteador.js";
 let subneteador = new Subneteador();
+const isThereInitialIp = document.getElementById("ip-inicial-personalizada");
+let ipInicial = () => {
+    const oct1 = parseInt(document.getElementById("octeto1").value);
+    const oct2 = parseInt(document.getElementById("octeto2").value);
+    const oct3 = parseInt(document.getElementById("octeto3").value);
+    const oct4 = parseInt(document.getElementById("octeto4").value);
+    return [oct1, oct2, oct3, oct4];
+}
 
 document.getElementById("numero-de-redes").addEventListener("input", function() {
     let numeroDeRedes = parseInt(this.value);
@@ -23,7 +31,11 @@ document.getElementById("form-subneteo").addEventListener("submit", function(e) 
     for (let i = 0; i < numeroDeRedes; i++) {
         hosts.push(parseInt(document.getElementById(`red-${i}`).value));
     }
-    mostrarInformacion(subneteador.calcularRedes(hosts));
+    if (isThereInitialIp.checked) {
+        mostrarInformacion(subneteador.calcularRedes(hosts, ipInicial()));
+    } else {
+        mostrarInformacion(subneteador.calcularRedes(hosts));
+    }
 });
 
 function mostrarInformacion(resultados) {
